@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{AD94E747-4598-499C-8EA3-F6013ACFFCD5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>HEFSIILIBDTES</RootNamespace>
+    <AssemblyName>HEFSIILIBDTES</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="itextsharp">
+      <HintPath>..\Dlls\itextsharp.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="wnvhtmltopdf">
+      <HintPath>..\Dlls\wnvhtmltopdf.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AUTENTICACION\DTE\CERTIFICACION\WsSiiGetToken.cs" />
+    <Compile Include="AUTENTICACION\DTE\CERTIFICACION\WsSiiGetSeed.cs" />
+    <Compile Include="AUTENTICACION\DTE\PRODUCCION\WsSiiGetSeed.cs" />
+    <Compile Include="AUTENTICACION\DTE\PRODUCCION\WsSiiGetToken.cs" />
+    <Compile Include="AUTENTICACION\HefLogin.cs" />
+    <Compile Include="CONSULTAS\CERT\WsSiiConsultas.cs" />
+    <Compile Include="CONSULTAS\PRO\WsSiiConsultas.cs" />
+    <Compile Include="DAL\HefConsultas.cs" />
+    <Compile Include="DAL\HefPublicadores.cs" />
+    <Compile Include="ENTIDADES\HefConfiguracion.cs" />
+    <Compile Include="ENTIDADES\HefEnumeradores.cs" />
+    <Compile Include="ENTIDADES\HefRespuesta.cs" />
+    <Compile Include="FUNCIONES\HefCertificados.cs" />
+    <Compile Include="FUNCIONES\HefFirmas.cs" />
+    <Compile Include="FUNCIONES\HefPrettyXml.cs" />
+    <Compile Include="FUNCIONES\HefRsa.cs" />
+    <Compile Include="FUNCIONES\HefSchema.cs" />
+    <Compile Include="FUNCIONES\HefSerializar.cs" />
+    <Compile Include="FUNCIONES\HefSimula.cs" />
+    <Compile Include="FUNCIONES\HefValidaciones.cs" />
+    <Compile Include="HEFPDF.CS" />
+    <Compile Include="HefPublicador.cs" />
+    <Compile Include="LIBRERIA\HEFBOL.cs" />
+    <Compile Include="LIBRERIA\HEFRCOF.cs" />
+    <Compile Include="CONSULTAS\HefConsultas.cs" />
+    <Compile Include="NEGOCIO\HefCertificados.cs" />
+    <Compile Include="NEGOCIO\HefConsultas.cs" />
+    <Compile Include="NEGOCIO\hefControl.cs" />
+    <Compile Include="NEGOCIO\HefPublicadores.cs" />
+    <Compile Include="PDFS\HEFPDF417.cs" />
+    <Compile Include="PDFS\HEFPDFS.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="AUTENTICACION\BOL\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
