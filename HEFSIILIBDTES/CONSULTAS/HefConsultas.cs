@@ -109,11 +109,9 @@ namespace HEFSIILIBDTES.CONSULTAS
 
             ////
             //// Beta?
-            HefRespuesta respVal = NEGOCIO.hefControl.esValido();
-            if (!respVal.EsCorrecto)
-                return respVal;
-
-
+            //HefRespuesta respVal = NEGOCIO.hefControl.esValido();
+            //if (!respVal.EsCorrecto)
+            //    return respVal;
 
             ////
             //// Iniciar la respuesta

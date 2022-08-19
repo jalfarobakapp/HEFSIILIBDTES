@@ -8,10 +8,13 @@ Public Class Class_SQL
     Dim _Error As String
     Dim _Global_BaseBk As String
 
-    Public ReadOnly Property Pro_Error() As String
+    Public Property Pro_Error As String
         Get
             Return _Error
         End Get
+        Set(value As String)
+            _Error = value
+        End Set
     End Property
 
     Public Property Global_BaseBk As String
@@ -325,7 +328,7 @@ Public Class Class_SQL
             ''MsgBox(sCnn)
 
         Catch ex As SqlClient.SqlException 'Exception
-            _Error = ex.Message
+            _Error = ex.Message & vbCrLf & "Cadena de conexión: " & _Cn.ConnectionString
             ''MsgBox(ex.Message)
             ''MessageBox.Show("ERROR al conectar o recuperar los datos:" & vbCrLf & _
             '                ex.Message, "Conectar con la base", _
@@ -434,6 +437,10 @@ Public Class Class_SQL
 
 
             Dim _Tbl As DataTable = Fx_Get_Tablas(_Sql, _MostrarError)
+
+            If Not String.IsNullOrEmpty(_Error) Then
+                Return _Error
+            End If
 
             Dim cuenta As Long = _Tbl.Rows.Count
 

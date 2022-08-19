@@ -35,9 +35,9 @@ namespace cliente
             //// TEST SET BOLETAS ELECTRPONICAS
             //// CrearBOLXml();
             //PublicarPaqueteBoletasCertificadoSetBoletas();
-            ConsultarTrackidBol();
+            //ConsultarTrackidBol();
 
-            //PublicarPaqueteBoletas();
+            PublicarPaqueteBoletas();
 
             Console.WriteLine("FIN");
             Console.ReadKey();
@@ -869,10 +869,6 @@ namespace cliente
             Console.WriteLine(resp.XmlDocumento);
 
 
-
-
-
-
         }
 
         /// <summary>
@@ -944,7 +940,6 @@ namespace cliente
         /// </summary>
         static void PublicarPaqueteBoletas()
         {
-
 
             ////
             //// Parametros de la consulta

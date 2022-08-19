@@ -472,7 +472,8 @@ namespace HEFSIILIBDTES
                 resp.EsCorrecto = false;
                 resp.Detalle = ex.Message;
                 resp.Resultado = null;
-
+                resp.Trackid = "0";
+                resp.Mensaje = ex.Message;  
             }
 
             ////
