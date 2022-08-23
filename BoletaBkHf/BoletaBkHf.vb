@@ -4,6 +4,7 @@ Imports System.Reflection.Assembly
 Imports System.Text
 Imports HEFSIILIBDTES
 Imports HEFSIILIBDTES.CONSULTAS
+Imports Newtonsoft.Json
 
 Module BoletaBkHf
 
@@ -104,7 +105,7 @@ Module BoletaBkHf
             _Empresa = "01"
             _AmbienteCertificacion = True
             _Id_Dte = 0
-            _Trackid = "55555" '"18499665"
+            _Trackid = "18499665" '"18499665"
             _Accion = Enum_Accion.ConsultarTrackid
             '_Accion = Enum_Accion.EnviarBoletaSII
 
@@ -230,26 +231,54 @@ Module BoletaBkHf
                         _Procesar = 1
                     End If
 
+                    Dim _RespuestSII As RespBolSII = Fx_ObtenerDatosRespuestaSII(_Respuesta)
+                    Dim _VolverProcesar As Boolean
+
+                    If Not IsNothing(_RespuestSII) Then
+
+                        _Estado = _RespuestSII.estado
+                        _Aceptado = _RespuestSII.estadistica(0).aceptados
+                        _Informado = _RespuestSII.estadistica(0).informados
+                        _Rechazado = _RespuestSII.estadistica(0).rechazados
+                        _Reparo = _RespuestSII.estadistica(0).reparos
+
+                        If CBool(_Rechazado) Or CBool(_Reparo) Then
+                            _Estado = _RespuestSII.detalle_rep_rech(0).estado
+                            _Glosa = _RespuestSII.detalle_rep_rech(0).descripcion
+                        Else
+                            _Glosa = Fx_GlosaEstados(_Estado, _Aceptado, _Rechazado, _VolverProcesar)
+                        End If
+
+                        If _Estado = "EPR" And CBool(_Rechazado) Then
+                            _Glosa += " (Revise el SII, puede que el documento este aceptado con otro Trackid)"
+                        End If
+
+                    End If
+
+                    If _VolverProcesar And _Intentos <= 3 Then
+                        _Procesado = 0
+                        _Procesar = 1
+                    End If
+
                     Consulta_sql = "Update " & _Global_BaseBk & "Zw_DTE_Trackid Set " & vbCrLf &
-                               "Procesado = " & _Procesado & "," &
-                               "Procesar = " & _Procesar & "," &
-                               "Informado = " & _Informado & "," &
-                               "Aceptado = " & _Aceptado & "," &
-                               "Rechazado = " & _Rechazado & "," &
-                               "Reparo = " & _Reparo & "," &
-                               "EnviarMail = 0," &
-                               "Estado = '" & _Estado & "'," &
-                               "Glosa = '" & _Glosa & "'," &
-                               "Respuesta = '" & _Respuesta & "'," & vbCrLf &
-                               "Intentos = " & _Intentos & vbCrLf &
-                               "Where Id = " & _Id_Trackid
+                                   "Procesado = " & _Procesado & "," &
+                                   "Procesar = " & _Procesar & "," &
+                                   "Informado = " & _Informado & "," &
+                                   "Aceptado = " & _Aceptado & "," &
+                                   "Rechazado = " & _Rechazado & "," &
+                                   "Reparo = " & _Reparo & "," &
+                                   "EnviarMail = 0," &
+                                   "Estado = '" & _Estado & "'," &
+                                   "Glosa = '" & _Glosa & "'," &
+                                   "Respuesta = '" & _Respuesta & "'," & vbCrLf &
+                                   "Intentos = " & _Intentos & vbCrLf &
+                                   "Where Id = " & _Id_Trackid
                     _Sql.Ej_consulta_IDU(Consulta_sql, False)
 
                 End If
 
             Else
-                    Console.WriteLine("No fue posible enviar el documento...")
-                '_Sql.Ej_consulta_IDU(Consulta_sql, False)
+                Console.WriteLine("No fue posible enviar el documento...")
             End If
 
         End If
@@ -425,6 +454,15 @@ Module BoletaBkHf
 
     End Function
 
+    Function Fx_ObtenerDatosRespuestaSII(json As String) As RespBolSII
+        Try
+            Dim Arr As RespBolSII = JsonConvert.DeserializeObject(Of RespBolSII)(json)
+            Return Arr
+        Catch Ex As Exception
+            Return Nothing
+        End Try
+    End Function
+
     Public Function AppPath(Optional backSlash As Boolean = False) As String
 
         Dim s As String = IO.Path.GetDirectoryName(GetExecutingAssembly.GetCallingAssembly.Location)
@@ -538,6 +576,96 @@ Module BoletaBkHf
         End Try
 
         Return True
+
+    End Function
+
+    Function Fx_GlosaEstados(_Estado As String,
+                             ByRef _Aceptado As Integer,
+                             ByRef _Rechazado As Integer,
+                             ByRef _VolverProcesar As Boolean) As String
+
+        _Aceptado = 0
+        _Rechazado = 0
+        _VolverProcesar = False
+
+        Select Case _Estado
+            Case "RSC"
+                _Rechazado = 1
+                Return "Rechazado por Error en Schema"
+            Case "SOK"
+                _VolverProcesar = True
+                Return "Schema Validado"
+            Case "CRT"
+                _VolverProcesar = True
+                Return "Carátula OK"
+            Case "RFR"
+                _Rechazado = 1
+                Return "Rechazado por Error en Firma"
+            Case "FOK"
+                _VolverProcesar = True
+                Return "Firma de Envió Validada"
+            Case "PDR"
+                _VolverProcesar = True
+                Return "Envió en Proceso"
+            Case "RCT"
+                _Rechazado = 1
+                Return "Rechazado por Error en Carátula"
+            Case "EPR"
+                _Aceptado = 1
+                Return "Envió Procesado"
+            Case "-1"
+                _VolverProcesar = True
+                Return "ERROR: RETORNO CAMPO ESTADO, NO EXISTE"
+            Case "-2"
+                _VolverProcesar = True
+                Return "ERROR RETORNO"
+            Case "-3"
+                _VolverProcesar = True
+                Return "ERROR: RUT USUARIO NO EXISTE"
+            Case "-4"
+                _VolverProcesar = True
+                Return "ERROR OBTENCION DE DATOS"
+            Case "-5"
+                _VolverProcesar = True
+                Return "ERROR RETORNO DATOS"
+            Case "-6"
+                _VolverProcesar = True
+                Return "ERROR: USUARIO NO AUTORIZADO"
+            Case "-7"
+                _VolverProcesar = True
+                Return "ERROR RETORNO DATOS"
+            Case "-8"
+                _VolverProcesar = True
+                Return "ERROR: RETORNO DATOS"
+            Case "-9"
+                Return "ERROR: RETORNO DATOS"
+            Case "-10"
+                _VolverProcesar = True
+                Return "ERROR: VALIDA RUT USUARIO"
+            Case "-11"
+                _VolverProcesar = True
+                Return "ERR_CODE, SQL_CODE, SRV_CODE"
+            Case "-12"
+                _VolverProcesar = True
+                Return "ERROR: RETORNO CONSULTA"
+            Case "-13"
+                _VolverProcesar = True
+                Return "ERROR RUT USUARIO NULO"
+            Case "-14"
+                _VolverProcesar = True
+                Return "ERROR XML RETORNO DATOS"
+            Case "001"
+                _Rechazado = 1
+                Return "COOKIE INACTIV"
+            Case "002"
+                _Rechazado = 1
+                Return "TOKEN+INACTIVO"
+            Case "003"
+                _Rechazado = 1
+                Return "NO+EXISTE"
+            Case Else
+                Return ""
+        End Select
 
     End Function
 
