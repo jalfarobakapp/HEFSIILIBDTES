@@ -78,15 +78,19 @@ Module BoletaBkHf
                 _Trackid = Environment.GetCommandLineArgs(4)
                 _Accion = Environment.GetCommandLineArgs(5)
 
-                Console.WriteLine("******************************")
-                Console.WriteLine("Cadena_ConexionSQL_Server : {0}", Cadena_ConexionSQL_Server)
-                Console.WriteLine("Empresa                   : {0}", _Empresa)
-                Console.WriteLine("AmbienteCertificacion     : {0}", _AmbienteCertificacion)
-                Console.WriteLine("Id_Dte                    : {0}", _Id_Dte)
-                Console.WriteLine("Trackid                   : {0}", _Trackid)
-                Console.WriteLine("Accion                    : {0}", _Accion.ToString)
-                Console.WriteLine("******************************")
-                Console.WriteLine(vbCrLf)
+                If _AmbienteCertificacion Then
+
+                    Console.WriteLine("******************************")
+                    Console.WriteLine("Cadena_ConexionSQL_Server : {0}", Cadena_ConexionSQL_Server)
+                    Console.WriteLine("Empresa                   : {0}", _Empresa)
+                    Console.WriteLine("AmbienteCertificacion     : {0}", _AmbienteCertificacion)
+                    Console.WriteLine("Id_Dte                    : {0}", _Id_Dte)
+                    Console.WriteLine("Trackid                   : {0}", _Trackid)
+                    Console.WriteLine("Accion                    : {0}", _Accion.ToString)
+                    Console.WriteLine("******************************")
+                    Console.WriteLine(vbCrLf)
+
+                End If
 
             Catch ex As Exception
                 Console.WriteLine("Error!")
@@ -104,10 +108,10 @@ Module BoletaBkHf
 
             _Empresa = "01"
             _AmbienteCertificacion = True
-            _Id_Dte = 0
+            _Id_Dte = 8
             _Trackid = "18499665" '"18499665"
-            _Accion = Enum_Accion.ConsultarTrackid
-            '_Accion = Enum_Accion.EnviarBoletaSII
+            '_Accion = Enum_Accion.ConsultarTrackid
+            _Accion = Enum_Accion.EnviarBoletaSII
 
         End If
 
@@ -190,6 +194,16 @@ Module BoletaBkHf
 
             Dim _Id_Trackid As Integer = _Sql.Fx_Trae_Dato(_Global_BaseBk & "Zw_DTE_Trackid", "Id", "Trackid = '" & _Trackid & "'", True, False)
 
+            If Not CBool(_Id_Trackid) Then
+                Console.WriteLine("No se encontro registros con el Trackid: {0}", _Trackid)
+                Return
+            End If
+
+            Consulta_sql = "Select Top 1 * From " & _Global_BaseBk & "Zw_DTE_Trackid Where Id = " & _Id_Trackid
+            Dim _RowTrackid As DataRow = _Sql.Fx_Get_DataRow(Consulta_sql)
+
+            Dim _Intentos As Integer = _RowTrackid.Item("Intentos")
+
             _HefRespuesta = Fx_Consultar_Trackid(_Trackid, _AmbienteCertificacion)
 
             Console.WriteLine(vbCrLf)
@@ -222,17 +236,20 @@ Module BoletaBkHf
                     Dim _Procesado As Integer = 1
                     Dim _Procesar As Integer = 0
                     Dim _Respuesta As String = _HefRespuesta.XmlDocumento
-                    Dim _Intentos As Integer
+                    Dim _VolverProcesar As Boolean
+
+                    _Intentos += 1
 
                     If Not _HefRespuesta.EsCorrecto Then
                         _Respuesta = _HefRespuesta.Detalle
-                        _Intentos += 1
-                        _Procesado = 0
-                        _Procesar = 1
+                        _VolverProcesar = True
                     End If
 
                     Dim _RespuestSII As RespBolSII = Fx_ObtenerDatosRespuestaSII(_Respuesta)
-                    Dim _VolverProcesar As Boolean
+
+                    If IsNothing(_RespuestSII) Then
+                        _VolverProcesar = True
+                    End If
 
                     If Not IsNothing(_RespuestSII) Then
 
@@ -283,9 +300,9 @@ Module BoletaBkHf
 
         End If
 
-        If _AmbienteCertificacion Then
-            Console.ReadKey()
-        End If
+        'If _AmbienteCertificacion Then
+        '    Console.ReadKey()
+        'End If
 
     End Sub
 
@@ -365,10 +382,11 @@ Module BoletaBkHf
         Dim _Xml As String = _Zw_DTE_Documentos.Item("CaratulaXml")
 
         Dim _Ruta = _AppPath & "\Data\DTE\Documentos\Boleta\"
+        _Ruta = _AppPath & "\Data\Dtes\Documentos\Boleta\"
 
-        'If Not Directory.Exists(_Ruta) Then
-        '    System.IO.Directory.CreateDirectory(_Ruta)
-        'End If
+        If Not Directory.Exists(_Ruta) Then
+            System.IO.Directory.CreateDirectory(_Ruta)
+        End If
 
         Dim _CrearArchivo As String = Fx_CrearArchivo(_Ruta, "SET_ENVIO_BOLETA.xml", _Xml)
 
