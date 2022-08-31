@@ -93,7 +93,7 @@ Module BoletaBkHf
                 End If
 
             Catch ex As Exception
-                Console.WriteLine("Error!")
+                Console.WriteLine("Error 1!")
                 Console.WriteLine(ex.Message)
                 Console.ReadKey()
                 Return
@@ -105,11 +105,11 @@ Module BoletaBkHf
             'Cadena_ConexionSQL_Server = "data source = SIERRALTA; initial catalog = SIERRALTA_PRB; user id = SIERRALTA_PRB; password = SIERRALTA_PRB"
             'Cadena_ConexionSQL_Server = "data source=186.67.37.218,1518;initial catalog=SIERRALTA_PRB;user id=SIERRALTA_PRB;password = SIERRALTA_PRB"
             '"data@source=186.67.37.218,1518;initial@catalog=SIERRALTA_PRB;user@id=SIERRALTA_PRB;password=SIERRALTA_PRB"
-
+            '01 False 441 0 0
             _Empresa = "01"
-            _AmbienteCertificacion = True
-            _Id_Dte = 8
-            _Trackid = "18499665" '"18499665"
+            _AmbienteCertificacion = False
+            _Id_Dte = 69
+            _Trackid = "0" ' SOK ->--"5729876727"
             '_Accion = Enum_Accion.ConsultarTrackid
             _Accion = Enum_Accion.EnviarBoletaSII
 
@@ -148,7 +148,7 @@ Module BoletaBkHf
             _Row_Empresa = _Sql.Fx_Get_DataRow(Consulta_sql)
             _RutEmpresaActiva = _Row_Empresa.Item("Rut")
         Catch ex As Exception
-            Console.WriteLine("Error: " & ex.Message)
+            Console.WriteLine("Error 2: " & ex.Message)
             Console.WriteLine("******************************")
             Console.ReadKey()
             Return
@@ -254,10 +254,18 @@ Module BoletaBkHf
                     If Not IsNothing(_RespuestSII) Then
 
                         _Estado = _RespuestSII.estado
-                        _Aceptado = _RespuestSII.estadistica(0).aceptados
-                        _Informado = _RespuestSII.estadistica(0).informados
-                        _Rechazado = _RespuestSII.estadistica(0).rechazados
-                        _Reparo = _RespuestSII.estadistica(0).reparos
+
+                        Try
+                            _Aceptado = _RespuestSII.estadistica(0).aceptados
+                            _Informado = _RespuestSII.estadistica(0).informados
+                            _Rechazado = _RespuestSII.estadistica(0).rechazados
+                            _Reparo = _RespuestSII.estadistica(0).reparos
+                        Catch ex As Exception
+                            _Aceptado = False
+                            _Informado = False
+                            _Rechazado = False
+                            _Reparo = False
+                        End Try
 
                         If CBool(_Rechazado) Or CBool(_Reparo) Then
                             _Estado = _RespuestSII.detalle_rep_rech(0).estado
@@ -300,9 +308,11 @@ Module BoletaBkHf
 
         End If
 
-        'If _AmbienteCertificacion Then
-        '    Console.ReadKey()
-        'End If
+        If Environment.GetCommandLineArgs.Length <= 1 Then
+            Console.ReadKey()
+        End If
+
+        End
 
     End Sub
 
@@ -417,10 +427,13 @@ Module BoletaBkHf
         Dim _Mensaje = _HefRespuesta.Mensaje
         Dim _Proceso = _HefRespuesta.Proceso
         Dim _Resultado = _HefRespuesta.Resultado
-        Dim _Trackid = _HefRespuesta.Trackid.ToString.Trim
-        Dim _XmlDocumento = _HefRespuesta.XmlDocumento
+        Dim _Trackid As String
+        Dim _XmlDocumento As String
 
         If _HefRespuesta.EsCorrecto Then
+
+            _Trackid = _HefRespuesta.Trackid.ToString.Trim
+            _XmlDocumento = _HefRespuesta.XmlDocumento
 
             Dim _Id_Trackid As Integer
 
@@ -429,6 +442,20 @@ Module BoletaBkHf
             _Sql.Ej_Insertar_Trae_Identity(Consulta_sql, _Id_Trackid, False)
 
             Consulta_sql = "Update " & _Global_BaseBk & "Zw_DTE_Documentos Set Procesado = 1,Procesar = 0 Where Id_Dte =  " & _Id_Dte
+            _Sql.Ej_consulta_IDU(Consulta_sql, False)
+
+        Else
+
+            Dim _Detalle As String
+
+            Try
+                _Detalle = _HefRespuesta.Detalle
+            Catch ex As Exception
+                _Detalle = String.Empty
+            End Try
+
+            Consulta_sql = "Update " & _Global_BaseBk & "Zw_DTE_Documentos Set Procesado = 0,Procesar = 1,Respuesta = '" & _Detalle & "'" & vbCrLf &
+                           "Where Id_Dte =  " & _Id_Dte
             _Sql.Ej_consulta_IDU(Consulta_sql, False)
 
         End If
@@ -589,7 +616,7 @@ Module BoletaBkHf
             Console.WriteLine("Carpeta de paso eliminada.")
         Catch ex As Exception
             Console.WriteLine("******** ERROR AL CREAR DIRECTORIOS**********************")
-            Console.WriteLine("Error al descargar los archivos Dte.zip: " & ex.Message)
+            Console.WriteLine("Error 3 al descargar los archivos Dte.zip: " & ex.Message)
             Return False
         End Try
 
