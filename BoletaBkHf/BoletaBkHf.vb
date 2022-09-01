@@ -454,8 +454,16 @@ Module BoletaBkHf
                 _Detalle = String.Empty
             End Try
 
-            Consulta_sql = "Update " & _Global_BaseBk & "Zw_DTE_Documentos Set Procesado = 0,Procesar = 1,Respuesta = '" & _Detalle & "'" & vbCrLf &
-                           "Where Id_Dte =  " & _Id_Dte
+            _Detalle = Replace(_Detalle, "'", "''")
+
+            If _Detalle.Contains("Error") Then
+                Consulta_sql = "Update " & _Global_BaseBk & "Zw_DTE_Documentos Set Procesado = 1,Procesar = 0,Respuesta = '" & _Detalle & "',ErrorEnvioDTE = 1" & vbCrLf &
+                               "Where Id_Dte =  " & _Id_Dte
+            Else
+                Consulta_sql = "Update " & _Global_BaseBk & "Zw_DTE_Documentos Set Procesado = 0,Procesar = 1,Respuesta = '" & _Detalle & "'" & vbCrLf &
+               "Where Id_Dte =  " & _Id_Dte
+            End If
+
             _Sql.Ej_consulta_IDU(Consulta_sql, False)
 
         End If
