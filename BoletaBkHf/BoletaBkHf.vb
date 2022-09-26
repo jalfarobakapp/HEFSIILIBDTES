@@ -108,10 +108,10 @@ Module BoletaBkHf
             '01 False 441 0 0
             _Empresa = "01"
             _AmbienteCertificacion = False
-            _Id_Dte = 69
-            _Trackid = "0" ' SOK ->--"5729876727"
-            '_Accion = Enum_Accion.ConsultarTrackid
-            _Accion = Enum_Accion.EnviarBoletaSII
+            _Id_Dte = 455
+            _Trackid = "5842541563" ' SOK ->--"5729876727"
+            _Accion = Enum_Accion.ConsultarTrackid
+            '_Accion = Enum_Accion.EnviarBoletaSII
 
         End If
 
@@ -199,108 +199,116 @@ Module BoletaBkHf
                 Return
             End If
 
-            Consulta_sql = "Select Top 1 * From " & _Global_BaseBk & "Zw_DTE_Trackid Where Id = " & _Id_Trackid
-            Dim _RowTrackid As DataRow = _Sql.Fx_Get_DataRow(Consulta_sql)
-
-            Dim _Intentos As Integer = _RowTrackid.Item("Intentos")
-
             _HefRespuesta = Fx_Consultar_Trackid(_Trackid, _AmbienteCertificacion)
 
             Console.WriteLine(vbCrLf)
 
             If Not IsNothing(_HefRespuesta) Then
 
-                If _Id_Trackid = 0 Then
-                    _HefRespuesta.EsCorrecto = False
-                    _HefRespuesta.Mensaje = "NO se encontro Id Trackid con Trackid: " & _Trackid
-                End If
+                Consulta_sql = "Select * From " & _Global_BaseBk & "Zw_DTE_Trackid Where Trackid = '" & _Trackid & "'"
+                Dim _TblTrackid As DataTable = _Sql.Fx_Get_Tablas(Consulta_sql)
 
-                Console.WriteLine("EsCorrecto   : {0}", _HefRespuesta.EsCorrecto)
-                Console.WriteLine("FchProceso   : {0}", _HefRespuesta.FchProceso)
-                Console.WriteLine("Mensaje      : {0}", _HefRespuesta.Mensaje)
-                Console.WriteLine("Detalle      : {0}", _HefRespuesta.Detalle)
-                Console.WriteLine("Proceso      : {0}", _HefRespuesta.Proceso)
-                Console.WriteLine("Resultado    : {0}", _HefRespuesta.Resultado)
-                Console.WriteLine("Trackid      : {0}", _HefRespuesta.Trackid)
-                Console.WriteLine("XmlDocumento : {0}", vbCrLf & _HefRespuesta.XmlDocumento)
+                'Dim _RowTrackid As DataRow = _Sql.Fx_Get_DataRow(Consulta_sql)
 
-                If CBool(_Id_Trackid) Then
+                For Each _RowTrackid As DataRow In _TblTrackid.Rows
 
-                    Dim _Estado = String.Empty
-                    Dim _Glosa = String.Empty
+                    Dim _Intentos As Integer = _RowTrackid.Item("Intentos")
+                    _Id_Trackid = _RowTrackid.Item("Id")
 
-                    Dim _Aceptado As Integer
-                    Dim _Informado As Integer
-                    Dim _Rechazado As Integer
-                    Dim _Reparo As Integer
-                    Dim _Procesado As Integer = 1
-                    Dim _Procesar As Integer = 0
-                    Dim _Respuesta As String = _HefRespuesta.XmlDocumento
-                    Dim _VolverProcesar As Boolean
-
-                    _Intentos += 1
-
-                    If Not _HefRespuesta.EsCorrecto Then
-                        _Respuesta = _HefRespuesta.Detalle
-                        _VolverProcesar = True
+                    If _TblTrackid.Rows.Count = 0 Then ' _Id_Trackid = 0 Then
+                        _HefRespuesta.EsCorrecto = False
+                        _HefRespuesta.Mensaje = "NO se encontro Id Trackid con Trackid: " & _Trackid
+                        _Id_Trackid = 0
                     End If
 
-                    Dim _RespuestSII As RespBolSII = Fx_ObtenerDatosRespuestaSII(_Respuesta)
+                    Console.WriteLine("EsCorrecto   : {0}", _HefRespuesta.EsCorrecto)
+                    Console.WriteLine("FchProceso   : {0}", _HefRespuesta.FchProceso)
+                    Console.WriteLine("Mensaje      : {0}", _HefRespuesta.Mensaje)
+                    Console.WriteLine("Detalle      : {0}", _HefRespuesta.Detalle)
+                    Console.WriteLine("Proceso      : {0}", _HefRespuesta.Proceso)
+                    Console.WriteLine("Resultado    : {0}", _HefRespuesta.Resultado)
+                    Console.WriteLine("Trackid      : {0}", _HefRespuesta.Trackid)
+                    Console.WriteLine("XmlDocumento : {0}", vbCrLf & _HefRespuesta.XmlDocumento)
 
-                    If IsNothing(_RespuestSII) Then
-                        _VolverProcesar = True
-                    End If
+                    If CBool(_Id_Trackid) Then
 
-                    If Not IsNothing(_RespuestSII) Then
+                        Dim _Estado = String.Empty
+                        Dim _Glosa = String.Empty
 
-                        _Estado = _RespuestSII.estado
+                        Dim _Aceptado As Integer
+                        Dim _Informado As Integer
+                        Dim _Rechazado As Integer
+                        Dim _Reparo As Integer
+                        Dim _Procesado As Integer = 1
+                        Dim _Procesar As Integer = 0
+                        Dim _Respuesta As String = _HefRespuesta.XmlDocumento
+                        Dim _VolverProcesar As Boolean
 
-                        Try
-                            _Aceptado = _RespuestSII.estadistica(0).aceptados
-                            _Informado = _RespuestSII.estadistica(0).informados
-                            _Rechazado = _RespuestSII.estadistica(0).rechazados
-                            _Reparo = _RespuestSII.estadistica(0).reparos
-                        Catch ex As Exception
-                            _Aceptado = False
-                            _Informado = False
-                            _Rechazado = False
-                            _Reparo = False
-                        End Try
+                        _Intentos += 1
 
-                        If CBool(_Rechazado) Or CBool(_Reparo) Then
-                            _Estado = _RespuestSII.detalle_rep_rech(0).estado
-                            _Glosa = _RespuestSII.detalle_rep_rech(0).descripcion
-                        Else
-                            _Glosa = Fx_GlosaEstados(_Estado, _Aceptado, _Rechazado, _VolverProcesar)
+                        If Not _HefRespuesta.EsCorrecto Then
+                            _Respuesta = _HefRespuesta.Detalle
+                            _VolverProcesar = True
                         End If
 
-                        If _Estado = "EPR" And CBool(_Rechazado) Then
-                            _Glosa += " (Revise el SII, puede que el documento este aceptado con otro Trackid)"
+                        Dim _RespuestSII As RespBolSII = Fx_ObtenerDatosRespuestaSII(_Respuesta)
+
+                        If IsNothing(_RespuestSII) Then
+                            _VolverProcesar = True
                         End If
 
+                        If Not IsNothing(_RespuestSII) Then
+
+                            _Estado = _RespuestSII.estado
+
+                            Try
+                                _Aceptado = _RespuestSII.estadistica(0).aceptados
+                                _Informado = _RespuestSII.estadistica(0).informados
+                                _Rechazado = _RespuestSII.estadistica(0).rechazados
+                                _Reparo = _RespuestSII.estadistica(0).reparos
+                            Catch ex As Exception
+                                _Aceptado = False
+                                _Informado = False
+                                _Rechazado = False
+                                _Reparo = False
+                            End Try
+
+                            If CBool(_Rechazado) Or CBool(_Reparo) Then
+                                _Estado = _RespuestSII.detalle_rep_rech(0).estado
+                                _Glosa = _RespuestSII.detalle_rep_rech(0).descripcion
+                            Else
+                                _Glosa = Fx_GlosaEstados(_Estado, _Aceptado, _Rechazado, _VolverProcesar)
+                            End If
+
+                            If _Estado = "EPR" And CBool(_Rechazado) Then
+                                _Glosa += " (Revise el SII, puede que el documento este aceptado con otro Trackid)"
+                            End If
+
+                        End If
+
+                        If _VolverProcesar And _Intentos <= 3 Then
+                            _Procesado = 0
+                            _Procesar = 1
+                        End If
+
+                        Consulta_sql = "Update " & _Global_BaseBk & "Zw_DTE_Trackid Set " & vbCrLf &
+                                       "Procesado = " & _Procesado & "," &
+                                       "Procesar = " & _Procesar & "," &
+                                       "Informado = " & _Informado & "," &
+                                       "Aceptado = " & _Aceptado & "," &
+                                       "Rechazado = " & _Rechazado & "," &
+                                       "Reparo = " & _Reparo & "," &
+                                       "EnviarMail = 0," &
+                                       "Estado = '" & _Estado & "'," &
+                                       "Glosa = '" & _Glosa & "'," &
+                                       "Respuesta = '" & _Respuesta & "'," & vbCrLf &
+                                       "Intentos = " & _Intentos & vbCrLf &
+                                       "Where Id = " & _Id_Trackid
+                        _Sql.Ej_consulta_IDU(Consulta_sql, False)
+
                     End If
 
-                    If _VolverProcesar And _Intentos <= 3 Then
-                        _Procesado = 0
-                        _Procesar = 1
-                    End If
-
-                    Consulta_sql = "Update " & _Global_BaseBk & "Zw_DTE_Trackid Set " & vbCrLf &
-                                   "Procesado = " & _Procesado & "," &
-                                   "Procesar = " & _Procesar & "," &
-                                   "Informado = " & _Informado & "," &
-                                   "Aceptado = " & _Aceptado & "," &
-                                   "Rechazado = " & _Rechazado & "," &
-                                   "Reparo = " & _Reparo & "," &
-                                   "EnviarMail = 0," &
-                                   "Estado = '" & _Estado & "'," &
-                                   "Glosa = '" & _Glosa & "'," &
-                                   "Respuesta = '" & _Respuesta & "'," & vbCrLf &
-                                   "Intentos = " & _Intentos & vbCrLf &
-                                   "Where Id = " & _Id_Trackid
-                    _Sql.Ej_consulta_IDU(Consulta_sql, False)
-
-                End If
+                Next
 
             Else
                 Console.WriteLine("No fue posible enviar el documento...")
